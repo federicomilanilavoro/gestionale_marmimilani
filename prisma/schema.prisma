@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+
+
+
+
+
+// prisma/schema.prisma
+
+model Resource {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type      String
+  capacity  Int?     @default(1)
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  title       String
+  sqm         Float?
+  ml          Float?
+  startDate   DateTime
+  endDate     DateTime
+  status      String
+  customerId  Int
+  materialId  Int
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  material    Material  @relation(fields: [materialId], references: [id])
+
+  resourceId  Int?                 // 🔹 nuova colonna
+  resource    Resource? @relation(fields: [resourceId], references: [id])  // 🔹 relazione
+}
+
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orders    Order[]
+}
+
+model Material {
+  id        Int      @id @default(autoincrement())
+  name      String
+  type       String?   // <--- AGGIUNTO
+
+  coeff_mq  Float    @default(0.5)
+  coeff_ml  Float    @default(0.2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orders    Order[] 
+}
